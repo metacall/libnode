@@ -12,14 +12,14 @@ jobs:
     container:
       image: ubuntu:devel
     steps:
-      -name: Install Nodejs 21 apt keyrings
-        run: mkdir -p /etc/apt/keyrings && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_21.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+      -name: Install Nodejs 21 repo
+        run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash -
 
       - name: Update system
         run: apt-get update && apt-get --yes upgrade
       
       - name: Install building tools
-        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build ca-certificates curl gnupg
+        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs
 
       - name: Clone the repo
         run: git clone https://github.com/devraymondsh/libnode-distributable
