@@ -1,0 +1,19 @@
+name: Check for newer versions of Rust and update
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Check for newer versions of Rust and update
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:latest
+    steps:
+      - name: Update system
+        run: apt-get update && apt-get --yes upgrade
+
+      - name: Install building tools
+        run: apt-get install --yes python3 python3-pip gcc g++ make
