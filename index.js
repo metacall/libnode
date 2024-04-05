@@ -1,16 +1,12 @@
 import os from "node:os";
 import syncFs from "node:fs";
 import fs from "node:fs/promises";
-import { Readable } from "node:stream";
-import { finished } from "node:stream/promises";
-import { spawnSync, spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 
-const constructSourceTarballName = (version) => `node-${version}.tar.gz`;
-const constructSourceTarballDirName = (version) => `node-${version}`;
+const coreCount = os.cpus().length;
+const threadCount = coreCount * 2;
 
-const constructSourceDownloadLink = (version) =>
-  `https://github.com/nodejs/node/archive/refs/tags/v${version}.tar.gz`;
-
+const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
 
 const nodeIndexUrl = "https://nodejs.org/dist/index.json";
@@ -41,43 +37,35 @@ const isANewerVersion = (oldVer, newVer) => {
 
 const spawnAsync = (program, args, cwd) =>
   new Promise((resolve, reject) => {
-    const child = spawn(program, args, { cwd });
+    console.log([program, ...args].join(" "));
+
+    const child = spawn(program, args, cwd ? { cwd } : {});
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
-    child.stderr.on("data", (chunk) => {
-      console.error(chunk.toString());
-      reject(chunk);
-    });
-
-    child.on("close", (code) => resolve(code));
+    child.stderr.on("data", (chunk) => console.warn(chunk.toString()));
+    child.on("close", (code) => resolve(code.toString()));
   });
 
 const latestNodeVersion = await getLatestNodeVersion();
-
 if (!isANewerVersion(await getLatestPublishedVersion(), latestNodeVersion)) {
   console.log("Nothing to do!");
   process.exit(0);
 }
 
-const tarballName = constructSourceTarballName(latestNodeVersion);
-if (!syncFs.existsSync(tarballName)) {
-  const stream = syncFs.createWriteStream(tarballName);
-  const { body } = await fetch(constructSourceDownloadLink(latestNodeVersion));
-  await finished(Readable.fromWeb(body).pipe(stream));
+if (!syncFs.existsSync("node")) {
+  await spawnAsync(
+    "git",
+    [
+      "clone",
+      nodejsGithubRepo,
+      "--branch",
+      `v${latestNodeVersion}`,
+      "--depth=1",
+    ],
+    undefined
+  );
 }
 
-const tarballDir = constructSourceTarballDirName(latestNodeVersion);
-if (!syncFs.existsSync(tarballDir)) {
-  const { stderr } = spawnSync("tar", ["-xvf", `${tarballName}`]);
-  if (stderr.length > 0) {
-    console.error(stderr);
-    process.exit(0);
-  }
-}
+await spawnAsync("./configure", ["--ninja", "--shared", "--debug"], "node");
 
-await spawnAsync("./configure", ["--ninja", "--shared", "--debug"], tarballDir);
-
-const coreCount = os.cpus().length;
-const threadCount = coreCount * 2;
-
-await spawnAsync("make", [`-j${threadCount}`], tarballDir);
+await spawnAsync("make", [`-j${threadCount}`], "node");
