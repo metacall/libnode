@@ -1,10 +1,11 @@
 import os from "node:os";
 import syncFs from "node:fs";
 import fs from "node:fs/promises";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 
 const coreCount = os.cpus().length;
 const threadCount = coreCount * 2;
+const ccacheEnv = { CC: "ccache gcc", CXX: "ccache g++" };
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -35,11 +36,15 @@ const isANewerVersion = (oldVer, newVer) => {
   return false;
 };
 
-const spawnAsync = (program, args, cwd) =>
+const spawnAsync = (program, args, cwd, env) =>
   new Promise((resolve, reject) => {
     console.log([program, ...args].join(" "));
 
-    const child = spawn(program, args, cwd ? { cwd } : {});
+    const child = spawn(
+      program,
+      args,
+      cwd ? { cwd, env: { ...process.env, ...env } } : {}
+    );
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
     child.stderr.on("data", (chunk) => console.warn(chunk.toString()));
@@ -62,14 +67,16 @@ if (!syncFs.existsSync("node")) {
       `v${latestNodeVersion}`,
       "--depth=1",
     ],
-    undefined
+    undefined,
+    {}
   );
 }
 
 await spawnAsync(
   "./configure",
-  ["--ninja", "--shared", "--debug", "CC='ccache gcc'", "CXX='ccache g++'"],
-  "node"
+  ["--ninja", "--shared", "--debug"],
+  "node",
+  ccacheEnv
 );
 
-await spawnAsync("make", [`-j${threadCount}`], "node");
+await spawnAsync("make", [`-j${threadCount}`], "node", ccacheEnv);
