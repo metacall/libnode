@@ -12,11 +12,11 @@ jobs:
     container:
       image: ubuntu:devel
     steps:
-      - name: Install Nodejs 21 repo
-        run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash -
-
       - name: Update system
         run: apt-get update && apt-get --yes upgrade
+
+      - name: Install Nodejs 21 repo
+        run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash - && apt-get update
 
       - name: Install building tools
         run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs
