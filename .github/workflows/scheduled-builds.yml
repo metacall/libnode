@@ -8,7 +8,6 @@ on:
 jobs:
   update:
     name: Check for newer versions of Rust and update
-    runs-on: ubuntu-devel
     container:
       image: ubuntu:devel
     steps:
