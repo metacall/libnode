@@ -1,4 +1,4 @@
-name: Check for newer versions of Rust and update
+name: Check for newer versions and publish
 
 on:
   schedule:
@@ -8,9 +8,9 @@ on:
 jobs:
   update:
     name: Check for newer versions of Rust and update
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-devel
     container:
-      image: ubuntu:latest
+      image: ubuntu:devel
     steps:
       - name: Update system
         run: apt-get update && apt-get --yes upgrade
