@@ -31,7 +31,7 @@ jobs:
 
       - name: Setup CCache
         run: |
-          sudo update-ccache-symlinks
+          update-ccache-symlinks
           echo "/usr/lib/ccache" >> "$GITHUB_PATH"
 
           ccacheDir="${GITHUB_WORKSPACE}/.ccache"
