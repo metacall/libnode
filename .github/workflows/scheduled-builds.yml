@@ -12,6 +12,14 @@ jobs:
     container:
       image: ubuntu:devel
     steps:
+      - name: Restore CCache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ${{ runner.os }}:libnode:ccache:${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}:libnode:ccache:
+
       - name: Update system
         run: apt-get update && apt-get --yes upgrade
 
@@ -19,13 +27,27 @@ jobs:
         run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash - && apt-get update
 
       - name: Install building tools
-        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs
+        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs ccache
+
+      - name: Setup CCache
+        run: |
+          sudo update-ccache-symlinks
+          echo "/usr/lib/ccache" >> "$GITHUB_PATH"
+
+          ccacheDir="${GITHUB_WORKSPACE}/.ccache"
+          test -d "$ccacheDir" || mkdir "$ccacheDir"
+
+          echo "CCACHE_DIR=$ccacheDir" >> "$GITHUB_ENV"
 
       - name: Clone the repo
         run: git clone https://github.com/devraymondsh/libnode-distributable
 
       - name: Run the script
         run: cd libnode-distributable && node index.js
+
+      - name: Show CCache Status
+        shell: bash
+        run: ccache -s
 
       - name: A buncha ls
         run: ls . ; ls .. ; ls out/Debug ; ls ../out/Debug

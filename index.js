@@ -66,6 +66,10 @@ if (!syncFs.existsSync("node")) {
   );
 }
 
-await spawnAsync("./configure", ["--ninja", "--shared", "--debug"], "node");
+await spawnAsync(
+  "./configure",
+  ["--ninja", "--shared", "--debug", "CC='ccache gcc'", "CXX='ccache g++'"],
+  "node"
+);
 
 await spawnAsync("make", [`-j${threadCount}`], "node");
