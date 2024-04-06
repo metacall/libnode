@@ -16,6 +16,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .ccache
+          save-always: true
           key: ${{ runner.os }}:libnode:ccache:${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}:libnode:ccache:
