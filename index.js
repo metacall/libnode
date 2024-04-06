@@ -74,7 +74,7 @@ if (!syncFs.existsSync("node")) {
 
 await spawnAsync(
   "./configure",
-  ["--ninja", "--shared", "--release"],
+  ["--ninja", "--shared"],
   "node",
   ccacheEnv
 );
