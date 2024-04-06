@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 
 const coreCount = os.cpus().length;
 const threadCount = coreCount * 2;
-const ccacheEnv = { CC: "ccache gcc", CXX: "ccache g++" };
+const sccacheEnv = { CC: "sccache gcc", CXX: "sccache g++" };
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -74,9 +74,9 @@ if (!syncFs.existsSync("node")) {
 
 await spawnAsync(
   "./configure",
-  ["--ninja", "--shared"],
+  [`CC="sccache gcc"`, `CXX="sccache g++"`, "--ninja", "--shared"],
   "node",
-  ccacheEnv
+  sccacheEnv
 );
 
-await spawnAsync("make", [`-j${threadCount}`], "node", ccacheEnv);
+await spawnAsync("make", [`-j${threadCount}`], "node", sccacheEnv);

@@ -24,9 +24,11 @@ jobs:
       - name: Clone the repo
         run: git clone https://github.com/devraymondsh/libnode-distributable
 
-      - run: cd libnode-distributable && node index.js
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.4
+
       - name: Run the script
-        uses: hendrikmuhs/ccache-action@v1.2
+        run: cd libnode-distributable && node index.js
 
       - name: A buncha ls
         run: ls libnode-distributable/node/out ; ls libnode-distributable/node/out/Release
