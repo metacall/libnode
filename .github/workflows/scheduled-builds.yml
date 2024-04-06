@@ -35,4 +35,4 @@ jobs:
         run: cd libnode-distributable && node index.js
 
       - name: A buncha ls
-        run: ls libnode-distributable/node/out ; ls libnode-distributable/node/out/Release
+        run: find libnode-distributable/node -name libnode.so\* -exec ls -la {} \;
