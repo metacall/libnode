@@ -47,8 +47,11 @@ const spawnAsync = (program, args, cwd) =>
     const child = spawn(program, args, cwd ? { cwd } : {});
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
-    child.stderr.on("data", (chunk) => console.warn(chunk.toString()));
-    child.on("close", (code) => resolve(code.toString()));
+    child.stderr.on("data", (chunk) => console.error(chunk.toString()));
+    child.on("close", (code) => {
+      if (code == 0) resolve(code.toString());
+      else reject(code.toString());
+    });
   });
 
 const latestNodeVersion = await getLatestNodeVersion();

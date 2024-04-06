@@ -1,0 +1,38 @@
+name: Check for newer versions and publish
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Check for newer versions of Nodejs and update
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pguyot/arm-runner-action@v2
+
+      - name: Update system
+        run: apt-get update && apt-get --yes upgrade
+
+      - name: Install Nodejs 21 repo
+        run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash - && apt-get update
+
+      - name: Install building tools
+        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs ccache
+
+      - name: Clone the repo
+        run: git clone https://github.com/devraymondsh/libnode-distributable
+
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.4
+
+      - name: Run the script
+        env:
+          CC: "sccache gcc"
+          CXX: "sccache g++"
+          SCCACHE_GHA_ENABLED: "true"
+        run: cd libnode-distributable && node index.js
+
+      - name: Find the shared library
+        run: find libnode-distributable/node -name libnode.so\* -not -name '*.TOC' -not -name '*.toc' -exec ls {} \;

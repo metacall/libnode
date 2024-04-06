@@ -7,7 +7,7 @@ on:
 
 jobs:
   update:
-    name: Check for newer versions of Rust and update
+    name: Check for newer versions of Nodejs and update
     runs-on: ubuntu-latest
     container:
       image: ubuntu:devel
@@ -34,5 +34,5 @@ jobs:
           SCCACHE_GHA_ENABLED: "true"
         run: cd libnode-distributable && node index.js
 
-      - name: A buncha ls
-        run: find libnode-distributable/node -name libnode.so\* -exec ls -la {} \;
+      - name: Find the shared library
+        run: find libnode-distributable/node -name libnode.so\* -not -name '*.TOC' -not -name '*.toc' -exec ls {} \;
