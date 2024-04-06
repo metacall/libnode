@@ -51,4 +51,4 @@ jobs:
         run: ccache -s
 
       - name: A buncha ls
-        run: ls . ; ls .. ; ls out/Debug ; ls ../out/Debug
+        run: ls libnode-distributable ; ls libnode-distributable/out ; ls libnode-distributable/out/Release
