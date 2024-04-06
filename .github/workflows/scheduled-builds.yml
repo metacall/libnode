@@ -29,4 +29,4 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
 
       - name: A buncha ls
-        run: ls libnode-distributable ; ls libnode-distributable/out ; ls libnode-distributable/out/Release
+        run: ls libnode-distributable/node/out ; ls libnode-distributable/node/out/Release
