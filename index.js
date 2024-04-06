@@ -5,7 +5,11 @@ import { spawn } from "node:child_process";
 
 const coreCount = os.cpus().length;
 const threadCount = coreCount * 2;
-const sccacheEnv = { CC: "sccache gcc", CXX: "sccache g++" };
+
+let CC = process.env.CC;
+let CXX = process.env.CXX;
+if (!CC) CC = "gcc";
+if (!CXX) CXX = "g++";
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -36,15 +40,11 @@ const isANewerVersion = (oldVer, newVer) => {
   return false;
 };
 
-const spawnAsync = (program, args, cwd, env) =>
+const spawnAsync = (program, args, cwd) =>
   new Promise((resolve, reject) => {
     console.log([program, ...args].join(" "));
 
-    const child = spawn(
-      program,
-      args,
-      cwd ? { cwd, env: { ...process.env, ...env } } : {}
-    );
+    const child = spawn(program, args, cwd ? { cwd } : {});
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
     child.stderr.on("data", (chunk) => console.warn(chunk.toString()));
@@ -67,16 +67,10 @@ if (!syncFs.existsSync("node")) {
       `v${latestNodeVersion}`,
       "--depth=1",
     ],
-    undefined,
-    {}
+    undefined
   );
 }
 
-await spawnAsync(
-  "./configure",
-  [`CC="sccache gcc"`, `CXX="sccache g++"`, "--ninja", "--shared"],
-  "node",
-  sccacheEnv
-);
+await spawnAsync("./configure", ["--ninja", "--shared"], "node");
 
-await spawnAsync("make", [`-j${threadCount}`], "node", sccacheEnv);
+await spawnAsync("make", [`-j${threadCount}`], "node");

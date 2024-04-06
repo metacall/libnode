@@ -28,6 +28,10 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.4
 
       - name: Run the script
+        env:
+          CC: "sccache gcc"
+          CXX: "sccache g++"
+          SCCACHE_GHA_ENABLED: "true"
         run: cd libnode-distributable && node index.js
 
       - name: A buncha ls
