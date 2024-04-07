@@ -1,4 +1,4 @@
-name: Linux ARM64 daily check
+name: Linux daily check
 
 on:
   schedule:
@@ -7,10 +7,14 @@ on:
 
 jobs:
   update:
-    name: Linux ARM64 daily check
+    name: Linux daily check
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
     steps:
-      - uses: pguyot/arm-runner-action@v2
+      - if: matrix.arch == 'arm64'
+        uses: pguyot/arm-runner-action@v2
 
       - name: Update system
         run: sudo apt-get update && sudo apt-get --yes upgrade

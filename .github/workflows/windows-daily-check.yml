@@ -1,4 +1,4 @@
-name: Windows AMD64 daily check
+name: Windows daily check
 
 on:
   schedule:
@@ -7,10 +7,16 @@ on:
 
 jobs:
   update:
-    name: Windows AMD64 daily check
+    name: Windows daily check
     runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [amd64, amd64_arm64]
     steps:
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
       - uses: MinoruSekine/setup-scoop@v3
         with:
           buckets: extras
@@ -29,8 +35,9 @@ jobs:
 
       - name: Run the script
         env:
+          ARCH: ${{ matrix.arch }}
           SCCACHE_GHA_ENABLED: "true"
         run: cd libnode-distributable ; node index.js
 
       - name: Find the shared library
-        run: Get-ChildItem *.dll
+        run: dir /s libnode-distributable\node\out\Release\libnode.dll
