@@ -1,4 +1,4 @@
-name: Check for newer versions (Linux ARM64)
+name: Linux ARM64 daily check
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   update:
-    name: Check for newer versions (Linux ARM64)
+    name: Linux ARM64 daily check
     runs-on: ubuntu-latest
     steps:
       - uses: pguyot/arm-runner-action@v2
