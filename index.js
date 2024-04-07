@@ -8,10 +8,10 @@ const threadCount = coreCount * 2;
 
 let CC = process.env.CC;
 let CXX = process.env.CXX;
-let ARCH = process.env.CXX;
+let ARCH = process.env.ARCH;
 if (!CC) CC = "gcc";
 if (!CXX) CXX = "g++";
-if (!ARCH) ARCH = "x64";
+if (!ARCH) ARCH = "amd64";
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -80,6 +80,6 @@ if (process.platform == "linux") {
   await spawnAsync("./configure", ["--ninja", "--shared"], "node");
   await spawnAsync("make", [`-j${threadCount}`], "node");
 } else if (process.platform == "win32") {
-  const arch = ARCH == "x64" ? "x64" : "arm64";
+  const arch = ARCH == "amd64" ? "x64" : "arm64";
   await spawnAsync("vcbuild.bat", [arch, "dll"], "node");
 }
