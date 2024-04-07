@@ -78,5 +78,5 @@ if (process.platform == "linux") {
   await spawnAsync("./configure", ["--ninja", "--shared"], "node");
   await spawnAsync("make", [`-j${threadCount}`], "node");
 } else if (process.platform == "win32") {
-  await spawnAsync("vcbuild.bat", ["--shared"], "node");
+  await spawnAsync("vcbuild.bat", ["dll"], "node");
 }
