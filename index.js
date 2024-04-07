@@ -74,6 +74,9 @@ if (!syncFs.existsSync("node")) {
   );
 }
 
-await spawnAsync("./configure", ["--ninja", "--shared"], "node");
-
-await spawnAsync("make", [`-j${threadCount}`], "node");
+if (process.platform == "linux") {
+  await spawnAsync("./configure", ["--ninja", "--shared"], "node");
+  await spawnAsync("make", [`-j${threadCount}`], "node");
+} else if (process.platform == "win32") {
+  await spawnAsync(".\\vcbuild", ["--shared"], "node");
+}

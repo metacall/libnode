@@ -1,4 +1,4 @@
-name: Check for newer versions and publish
+name: Check for newer versions (Linux AMD64)
 
 on:
   schedule:
@@ -7,19 +7,19 @@ on:
 
 jobs:
   update:
-    name: Check for newer versions of Nodejs and update
+    name: Check for newer versions (Linux AMD64)
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:devel
     steps:
-      - uses: pguyot/arm-runner-action@v2
-
       - name: Update system
-        run: sudo apt-get update && sudo apt-get --yes upgrade
+        run: apt-get update && apt-get --yes upgrade
 
       - name: Install Nodejs 21 repo
-        run: sudo apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | sudo bash - && sudo apt-get update
+        run: apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash - && apt-get update
 
       - name: Install building tools
-        run: sudo apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs sudo
+        run: apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs
 
       - name: Clone the repo
         run: git clone https://github.com/devraymondsh/libnode-distributable

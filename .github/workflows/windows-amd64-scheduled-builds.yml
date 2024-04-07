@@ -1,0 +1,36 @@
+name: Check for newer versions (Windows AMD64)
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Check for newer versions (Windows AMD64)
+    runs-on: windows-latest
+    steps:
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: MinoruSekine/setup-scoop@v3
+        with:
+          update_path: true
+          run_as_admin: true
+          scoop_update: true
+          buckets: main extras
+
+      - name: Install building tools
+        run: scoop install nodejs python ninja nasm git
+
+      - name: Clone the repo
+        run: git clone https://github.com/devraymondsh/libnode-distributable
+
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.4
+
+      - name: Run the script
+        env:
+          SCCACHE_GHA_ENABLED: "true"
+        run: cd libnode-distributable ; node index.js
+
+      - name: Find the shared library
+        run: Get-ChildItem *.dll
