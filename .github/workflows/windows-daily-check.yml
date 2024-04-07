@@ -40,4 +40,4 @@ jobs:
         run: cd libnode-distributable ; node index.js
 
       - name: Find the shared library
-        run: dir /s libnode-distributable\node\out\Release\libnode.dll
+        run: dir libnode-distributable\node\out\Release\libnode.dll

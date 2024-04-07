@@ -1,10 +1,7 @@
-import os from "node:os";
 import syncFs from "node:fs";
+import { cpus } from "node:os";
 import fs from "node:fs/promises";
 import { spawn } from "node:child_process";
-
-const coreCount = os.cpus().length;
-const threadCount = coreCount * 2;
 
 let CC = process.env.CC;
 let CXX = process.env.CXX;
@@ -12,6 +9,22 @@ let ARCH = process.env.ARCH;
 if (!CC) CC = "gcc";
 if (!CXX) CXX = "g++";
 if (!ARCH) ARCH = "amd64";
+
+const coreCount = cpus().length;
+const threadCount = coreCount * 2;
+const arch = ARCH == "amd64" ? "x64" : "arm64";
+let os;
+switch (process.platform) {
+  case "darwin":
+    os = "mac";
+    break;
+  case "win32":
+    os = "win";
+    break;
+  default:
+    os = "linux";
+    break;
+}
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -76,10 +89,13 @@ if (!syncFs.existsSync("node")) {
   );
 }
 
-if (process.platform == "linux") {
-  await spawnAsync("./configure", ["--ninja", "--shared"], "node");
-  await spawnAsync("make", [`-j${threadCount}`], "node");
-} else if (process.platform == "win32") {
-  const arch = ARCH == "amd64" ? "x64" : "arm64";
+if (process.platform == "win32") {
   await spawnAsync("vcbuild.bat", [arch, "dll"], "node");
+} else {
+  await spawnAsync(
+    "./configure",
+    ["--ninja", "--shared", "--dest-cpu", arch, "--dest-os", os],
+    "node"
+  );
+  await spawnAsync("make", [`-j${threadCount}`], "node");
 }

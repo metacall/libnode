@@ -1,4 +1,4 @@
-name: Linux daily check
+name: Macos daily check
 
 on:
   schedule:
@@ -7,20 +7,14 @@ on:
 
 jobs:
   update:
-    name: Linux daily check
-    runs-on: ubuntu-latest
+    name: Macos daily check
+    runs-on: macos-latest
     strategy:
       matrix:
         arch: [amd64, arm64]
     steps:
-      - name: Update system
-        run: sudo apt-get update && sudo apt-get --yes upgrade
-
-      - name: Install Nodejs 21 repo
-        run: sudo apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | sudo bash - && sudo apt-get update
-
       - name: Install building tools
-        run: sudo apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs sudo
+        run: brew install node python ninja nasm git
 
       - name: Clone the repo
         run: git clone https://github.com/devraymondsh/libnode-distributable
@@ -30,8 +24,8 @@ jobs:
 
       - name: Run the script
         env:
-          CC: "sccache gcc"
-          CXX: "sccache g++"
+          CC: "sccache cc"
+          CXX: "sccache c++"
           ARCH: ${{ matrix.arch }}
           SCCACHE_GHA_ENABLED: "true"
         run: cd libnode-distributable && node index.js
