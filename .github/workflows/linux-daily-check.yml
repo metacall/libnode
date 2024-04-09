@@ -1,4 +1,4 @@
-name: Linux daily check
+name: Linux
 
 on:
   schedule:
@@ -7,34 +7,50 @@ on:
 
 jobs:
   update:
-    name: Linux daily check
     runs-on: ubuntu-latest
     strategy:
       matrix:
         arch: [amd64, arm64]
+        include:
+          - arch: arm64
+            is_arm: true
+    container:
+      image: ubuntu:devel
     steps:
-      - name: Update system
-        run: sudo apt-get update && sudo apt-get --yes upgrade
+      - uses: actions/checkout@v4
 
-      - name: Install Nodejs 21 repo
-        run: sudo apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | sudo bash - && sudo apt-get update
+      - name: Setup ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          save-always: true
+          key: ${{ github.workflow }}-${{ matrix.arch }}
 
       - name: Install building tools
-        run: sudo apt-get install --yes git python3 python3-pip gcc g++ make ninja-build nodejs sudo
-
-      - name: Clone the repo
-        run: git clone https://github.com/devraymondsh/libnode-distributable
-
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.4
+        run: |
+          apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash -
+          apt-get update
+          apt-get install --yes git nodejs python3 python3-pip gcc g++ make nasm ccache linux-libc-dev linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Run the script
         env:
-          CC: "sccache gcc"
-          CXX: "sccache g++"
           ARCH: ${{ matrix.arch }}
-          SCCACHE_GHA_ENABLED: "true"
-        run: cd libnode-distributable && node index.js
+          CC: "${{ matrix.is_arm && 'aarch64-linux-gnu-gcc' || 'gcc' }}"
+          CXX: "${{ matrix.is_arm && 'aarch64-linux-gnu-g++' || 'g++' }}"
+          # We don't want these variables to be set for AMD64.
+          CC_host: "${{ matrix.is_arm && 'gcc' || null }}"
+          CXX_host: "${{ matrix.is_arm && 'g++' || null }}"
+          AS: "${{ matrix.is_arm && 'aarch64-linux-gnu-as' || null }}"
+          LD: "${{ matrix.is_arm && 'aarch64-linux-gnu-ld' || null }}"
+          RANLIB: "${{ matrix.is_arm && 'aarch64-linux-gnu-ranlib' || null }}"
+        run: |
+          export CCACHE_COMPRESS="true"
+          export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
+          export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          mkdir -p "$CCACHE_DIR"
+
+          node index.js
 
       - name: Find the shared library
-        run: find libnode-distributable/node -name libnode.so\* -not -name '*.TOC' -not -name '*.toc' -exec ls {} \;
+        run: ls node/out/Release

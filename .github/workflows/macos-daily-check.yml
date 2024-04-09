@@ -1,4 +1,4 @@
-name: Macos daily check
+name: Macos
 
 on:
   schedule:
@@ -7,28 +7,53 @@ on:
 
 jobs:
   update:
-    name: Macos daily check
-    runs-on: macos-latest
     strategy:
       matrix:
         arch: [amd64, arm64]
+        include:
+          - arch: arm64
+            os: macos-14
+            is_arm: true
+          - arch: amd64
+            os: macos-13
+    runs-on: ${{ matrix.os }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          save-always: true
+          key: ${{ github.workflow }}-${{ matrix.arch }}
+
       - name: Install building tools
-        run: brew install node python ninja nasm git
+        run: |
+          sudo chown -R $(whoami) $(brew --prefix)/*
 
-      - name: Clone the repo
-        run: git clone https://github.com/devraymondsh/libnode-distributable
+          # homebrew fails to update python 3.9.1 to 3.9.1.1 due to unlinking failure
+          sudo rm -f /usr/local/bin/2to3 || true
+          # homebrew fails to update python from 3.9 to 3.10 due to another unlinking failure
+          sudo rm -f /usr/local/bin/idle3 || true
+          sudo rm -f /usr/local/bin/pydoc3 || true
+          sudo rm -f /usr/local/bin/python3 || true
+          sudo rm -f /usr/local/bin/python3-config || true
 
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.4
+          brew install git node ninja nasm ccache
 
       - name: Run the script
         env:
-          CC: "sccache cc"
-          CXX: "sccache c++"
+          CC: "gcc"
+          CXX: "g++"
           ARCH: ${{ matrix.arch }}
-          SCCACHE_GHA_ENABLED: "true"
-        run: cd libnode-distributable && node index.js
+        run: |
+          export CCACHE_COMPRESS="true"
+          export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
+          export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          mkdir -p "$CCACHE_DIR"
+
+          node index.js
 
       - name: Find the shared library
-        run: find libnode-distributable/node -name libnode.so\* -not -name '*.TOC' -not -name '*.toc' -exec ls {} \;
+        run: ls node/out/Release

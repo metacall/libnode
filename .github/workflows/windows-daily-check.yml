@@ -1,4 +1,4 @@
-name: Windows daily check
+name: Windows
 
 on:
   schedule:
@@ -7,37 +7,39 @@ on:
 
 jobs:
   update:
-    name: Windows daily check
+    name: Windows
     runs-on: windows-latest
     strategy:
       matrix:
         arch: [amd64, amd64_arm64]
     steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          "$([Environment]::OSVersion.VersionString) $(('x86', 'x64')[[Environment]::Is64BitOperatingSystem])"
+      # - name: Setup ccache
+      #   uses: actions/cache@v4
+      #   with:
+      #     key: ${{ github.workflow }}-${{ matrix.arch }}
+      #     path: C:\.ccache
+
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
 
       - uses: MinoruSekine/setup-scoop@v3
         with:
-          buckets: extras
           update_path: true
           run_as_admin: true
           scoop_update: true
 
       - name: Install building tools
-        run: scoop install nodejs python ninja nasm git
-
-      - name: Clone the repo
-        run: git clone https://github.com/devraymondsh/libnode-distributable
-
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.4
+        run: scoop install git nodejs python ninja nasm
 
       - name: Run the script
         env:
           ARCH: ${{ matrix.arch }}
-          SCCACHE_GHA_ENABLED: "true"
-        run: cd libnode-distributable ; node index.js
+        run: node index.js
 
       - name: Find the shared library
-        run: dir libnode-distributable\node\out\Release\libnode.dll
+        run: dir node\out\Release\node.lib

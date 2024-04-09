@@ -3,28 +3,25 @@ import { cpus } from "node:os";
 import fs from "node:fs/promises";
 import { spawn } from "node:child_process";
 
-let CC = process.env.CC;
-let CXX = process.env.CXX;
-let ARCH = process.env.ARCH;
-if (!CC) CC = "gcc";
-if (!CXX) CXX = "g++";
-if (!ARCH) ARCH = "amd64";
+let OS = process.env.OS;
+const ARCH = process.env.ARCH == "amd64" ? "x64" : "arm64";
 
 const coreCount = cpus().length;
 const threadCount = coreCount * 2;
-const arch = ARCH == "amd64" ? "x64" : "arm64";
-let os;
+let current_os;
 switch (process.platform) {
   case "darwin":
-    os = "mac";
+    current_os = "mac";
     break;
   case "win32":
-    os = "win";
+    current_os = "win";
     break;
   default:
-    os = "linux";
+    current_os = "linux";
     break;
 }
+
+if (!OS) OS = current_os;
 
 const nodejsGithubRepo = "https://github.com/nodejs/node";
 const removeTheVCharacter = (str) => str.replace("v", "");
@@ -55,11 +52,11 @@ const isANewerVersion = (oldVer, newVer) => {
   return false;
 };
 
-const spawnAsync = (program, args, cwd) =>
+const spawnAsync = (program, args) =>
   new Promise((resolve, reject) => {
-    console.log([program, ...args].join(" "));
+    console.log("Running:", [program, ...args].join(" "));
 
-    const child = spawn(program, args, cwd ? { cwd } : {});
+    const child = spawn(program, args, {});
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
     child.stderr.on("data", (chunk) => console.error(chunk.toString()));
@@ -85,17 +82,31 @@ if (!syncFs.existsSync("node")) {
       `v${latestNodeVersion}`,
       "--depth=1",
     ],
-    undefined
+    undefined,
+    {}
   );
 }
 
+process.chdir("node");
+
+let extraArgs = [];
 if (process.platform == "win32") {
-  await spawnAsync("vcbuild.bat", [arch, "dll"], "node");
+  await spawnAsync(".\\vcbuild.bat", [ARCH, "dll", "openssl-no-asm"]);
 } else {
-  await spawnAsync(
-    "./configure",
-    ["--ninja", "--shared", "--dest-cpu", arch, "--dest-os", os],
-    "node"
-  );
-  await spawnAsync("make", [`-j${threadCount}`], "node");
+  if (ARCH === "arm64") {
+    extraArgs.push("--with-arm-float-abi");
+    extraArgs.push("hard");
+    extraArgs.push("--with-arm-fpu");
+    extraArgs.push("neon");
+  }
+
+  await spawnAsync("./configure", [
+    "--shared",
+    "--dest-cpu",
+    ARCH,
+    "--dest-os",
+    OS,
+    ...extraArgs,
+  ]);
+  await spawnAsync("make", [`-j${threadCount}`]);
 }
