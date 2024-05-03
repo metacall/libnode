@@ -11,17 +11,11 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        arch: [amd64, amd64_arm64]
+        # https://github.com/nodejs/node/issues/52664
+        # arch: [amd64, amd64_arm64]
+        arch: [amd64]
     steps:
       - uses: actions/checkout@v4
-
-      - run: |
-          "$([Environment]::OSVersion.VersionString) $(('x86', 'x64')[[Environment]::Is64BitOperatingSystem])"
-      # - name: Setup ccache
-      #   uses: actions/cache@v4
-      #   with:
-      #     key: ${{ github.workflow }}-${{ matrix.arch }}
-      #     path: C:\.ccache
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
