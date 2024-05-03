@@ -3,6 +3,8 @@ import { cpus } from "node:os";
 import fs from "node:fs/promises";
 import { spawn } from "node:child_process";
 
+const nodejsGithubRepo = "https://github.com/nodejs/node";
+
 let OS = process.env.OS;
 const ARCH = process.env.ARCH == "amd64" ? "x64" : "arm64";
 
@@ -20,37 +22,7 @@ switch (process.platform) {
     current_os = "linux";
     break;
 }
-
 if (!OS) OS = current_os;
-
-const nodejsGithubRepo = "https://github.com/nodejs/node";
-const removeTheVCharacter = (str) => str.replace("v", "");
-
-const nodeIndexUrl = "https://nodejs.org/dist/index.json";
-const getLatestNodeVersion = async () => {
-  const res = await fetch(nodeIndexUrl);
-  const jsonData = await res.json();
-
-  return removeTheVCharacter(jsonData[0]["version"]);
-};
-
-const getLatestPublishedVersion = async () =>
-  removeTheVCharacter(await fs.readFile("version.txt", { encoding: "utf8" }));
-
-const isANewerVersion = (oldVer, newVer) => {
-  const oldParts = oldVer.split(".");
-  const newParts = newVer.split(".");
-
-  for (var i = 0; i < newParts.length; i++) {
-    const a = ~~newParts[i]; // parse int
-    const b = ~~oldParts[i]; // parse int
-
-    if (a > b) return true;
-    if (a < b) return false;
-  }
-
-  return false;
-};
 
 const spawnAsync = (program, args) =>
   new Promise((resolve, reject) => {
@@ -66,22 +38,11 @@ const spawnAsync = (program, args) =>
     });
   });
 
-const latestNodeVersion = await getLatestNodeVersion();
-if (!isANewerVersion(await getLatestPublishedVersion(), latestNodeVersion)) {
-  console.log("Nothing to do!");
-  process.exit(0);
-}
-
+const version = await fs.readFile("version.txt", { encoding: "utf8" });
 if (!syncFs.existsSync("node")) {
   await spawnAsync(
     "git",
-    [
-      "clone",
-      nodejsGithubRepo,
-      "--branch",
-      `v${latestNodeVersion}`,
-      "--depth=1",
-    ],
+    ["clone", nodejsGithubRepo, "--branch", version, "--depth=1"],
     undefined,
     {}
   );

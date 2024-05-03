@@ -1,0 +1,49 @@
+name: Daily check
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+env:
+  TAG: v0
+  NOTHING_TO_DO: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: true
+
+      - name: Install building tools
+        run: |
+          sudo apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | sudo bash -
+          sudo apt-get update && sudo apt-get install --yes nodejs
+
+      - name: Run the check script
+        run: node daily-check.js
+
+      - name: Commit
+        uses: EndBug/add-and-commit@v9
+        if: ${{ env.NOTHING_TO_DO == 'false' }}
+        with:
+          author_name: Mahdi Sharifi
+          message: "Add ${{ env.TAG }}"
+          author_email: devraymondsh@gmail.com
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        if: ${{ env.NOTHING_TO_DO == 'false' }}
+        with:
+          commit: main
+          allowUpdates: true
+          tag: ${{ env.TAG }}
+          generateReleaseNotes: false
+          name: libnode ${{ env.TAG }}
+          token: ${{ secrets.ACCESS_TOKEN }}
+          body: "Changelog: https://github.com/nodejs/node/releases/tag/${{ env.TAG }}"

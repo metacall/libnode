@@ -1,9 +1,9 @@
 name: Macos
 
 on:
-  schedule:
-    - cron: "0 8 * * *"
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 jobs:
   update:
@@ -25,7 +25,10 @@ jobs:
         with:
           path: .ccache
           save-always: true
-          key: ${{ github.workflow }}-${{ matrix.arch }}
+          key: ${{ github.workflow }}-${{ matrix.arch }}-${{ hashFiles('**/version.txt') }}
+          restore-keys: |
+            ${{ github.workflow }}-${{ matrix.arch }}-${{ hashFiles('**/version.txt') }}
+            ${{ github.workflow }}-${{ matrix.arch }}-
 
       - name: Install building tools
         run: |
@@ -55,5 +58,16 @@ jobs:
 
           node index.js
 
-      - name: Find the shared library
-        run: ls node/out/Release
+      - name: Create archive
+        run: |
+          cd node/out/Release
+          ln libnode.* libnode.dylib
+          tar -cJf "libnode-${{ matrix.arch }}-linux.tar.xz" libnode.* node
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          overwrite: true
+          tag: ${{ github.ref }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz

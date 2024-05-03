@@ -1,9 +1,9 @@
 name: Windows
 
 on:
-  schedule:
-    - cron: "0 8 * * *"
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
 jobs:
   update:
@@ -28,12 +28,22 @@ jobs:
           scoop_update: true
 
       - name: Install building tools
-        run: scoop install git nodejs python ninja nasm
+        run: scoop install git nodejs python ninja nasm 7zip
 
       - name: Run the script
         env:
           ARCH: ${{ matrix.arch }}
         run: node index.js
 
-      - name: Find the shared library
-        run: dir node\out\Release\node.lib
+      - name: Create archive
+        run: |
+          cd node\out\Release
+          tar.exe -a -c -f "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          overwrite: true
+          tag: ${{ github.ref }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
