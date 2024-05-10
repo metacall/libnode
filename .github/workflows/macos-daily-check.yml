@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   update:
@@ -62,7 +63,7 @@ jobs:
         run: |
           cd node/out/Release
           ln libnode.* libnode.dylib
-          tar -cJf "libnode-${{ matrix.arch }}-linux.tar.xz" libnode.* node
+          tar -cJf "libnode-${{ matrix.arch }}-macos.tar.xz" libnode.* node
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
