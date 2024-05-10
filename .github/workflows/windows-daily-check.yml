@@ -39,7 +39,7 @@ jobs:
       - name: Create archive
         run: |
           cd node\out\Release
-          tar.exe -a -c -f "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
+          7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
