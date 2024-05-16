@@ -50,8 +50,6 @@ if (!syncFs.existsSync("node")) {
 
 process.chdir("node");
 
-await spawnAsync("dir", []);
-
 let extraArgs = [];
 if (process.platform == "win32") {
   await spawnAsync(".\\vcbuild.bat", [ARCH, "dll", "openssl-no-asm"]);
