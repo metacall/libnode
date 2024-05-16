@@ -28,7 +28,7 @@ const spawnAsync = (program, args) =>
   new Promise((resolve, reject) => {
     console.log("Running:", [program, ...args].join(" "));
 
-    const child = spawn(program, args, {});
+    const child = spawn(program, args, { shell: true });
 
     child.stdout.on("data", (chunk) => console.log(chunk.toString()));
     child.stderr.on("data", (chunk) => console.error(chunk.toString()));
@@ -49,6 +49,8 @@ if (!syncFs.existsSync("node")) {
 }
 
 process.chdir("node");
+
+await spawnAsync("dir", []);
 
 let extraArgs = [];
 if (process.platform == "win32") {
