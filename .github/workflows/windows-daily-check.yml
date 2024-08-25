@@ -18,33 +18,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - uses: ilammy/msvc-dev-cmd@v1
-      #   with:
-      #     arch: ${{ matrix.arch }}
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
 
-      # - uses: MinoruSekine/setup-scoop@v3
-      #   with:
-      #     update_path: true
-      #     run_as_admin: true
-      #     scoop_update: true
+      - uses: MinoruSekine/setup-scoop@v3
+        with:
+          update_path: true
+          run_as_admin: true
+          scoop_update: true
 
-      # - name: Install building tools
-      #   run: scoop install git nodejs python ninja nasm 7zip
+      - name: Install building tools
+        run: scoop install git nodejs python ninja nasm 7zip
 
-      # - name: Run the script
-      #   env:
-      #     ARCH: ${{ matrix.arch }}
-      #   run: node index.js
+      - name: Run the script
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: node index.js
 
-      # - name: Create archive
-      #   run: |
-      #     cd node\out\Release
-      #     7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
+      - name: Create archive
+        run: |
+          cd node\out\Release
+          7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
 
-      # - name: Upload binaries to release
-      #   uses: svenstaro/upload-release-action@v2
-      #   with:
-      #     overwrite: true
-      #     tag: ${{ github.ref }}
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-      #     file: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          overwrite: true
+          tag: ${{ github.ref }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
