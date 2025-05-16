@@ -2,6 +2,8 @@
 
 This project automatically monitors Node.js for new releases and compiles the latest versions into shared libraries using GitHub Actions. You can conveniently access these binaries in the release section of this repository.
 
+The prebuilt binaries are used in [MetaCall Core](https://github.com/metacall/core) repository in order to embed NodeJS into multiple programming languages.
+
 ## Supported platforms:
 
 - Linux x64
@@ -10,7 +12,7 @@ This project automatically monitors Node.js for new releases and compiles the la
 - MacOS ARM64 (M series)
 - Windows x64
 
-## Possible Future Support:
+## TODO:
 
 - Windows ARM64 (The Windows ARM64 support is dependent on solving [https://github.com/nodejs/node/issues/52664](https://github.com/nodejs/node/issues/52664))
 
@@ -30,9 +32,9 @@ sudo mv libnode.so* /usr/lib/
 sudo mv node /usr/bin/
 ```
 
-## Usage with Metacall:
+## Usage with MetaCall:
 
-After doing the previous step, you can use libnode in Metacall like this:
+After doing the previous step, you can use libnode in MetaCall like this:
 
 ```bash
 cmake \
