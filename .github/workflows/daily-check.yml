@@ -13,7 +13,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -21,14 +21,13 @@ jobs:
 
       - name: Install building tools
         run: |
-          sudo apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | sudo bash -
-          sudo apt-get update && sudo apt-get install --yes nodejs
+          sudo apt-get update && sudo apt-get install -y nodejs
 
       - name: Run the check script
         run: node daily-check.js
 
       - name: Commit
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v10
         if: ${{ env.NOTHING_TO_DO == 'false' }}
         with:
           author_name: Mahdi Sharifi

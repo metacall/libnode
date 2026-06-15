@@ -18,10 +18,10 @@ jobs:
     container:
       image: ubuntu:devel
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .ccache
           save-always: true
@@ -32,9 +32,8 @@ jobs:
 
       - name: Install building tools
         run: |
-          apt-get install --yes ca-certificates curl gnupg && curl -sL https://deb.nodesource.com/setup_21.x | bash -
-          apt-get update
-          apt-get install --yes git nodejs python3 python3-pip gcc g++ make nasm ccache linux-libc-dev linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          apt-get update && apt-get upgrade -y
+          apt-get install -y git nodejs python3 python3-pip gcc g++ make nasm ccache linux-libc-dev linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Run the script
         env:
