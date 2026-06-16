@@ -44,7 +44,10 @@ jobs:
         run: |
           cd node\out\Release
           dir libnode.*, node.*
-          7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
+          curl.exe -sO https://nodejs.org/dist/${{ github.ref_name }}/node-${{ github.ref_name }}-headers.tar.gz
+          tar.exe -xzf node-${{ github.ref_name }}-headers.tar.gz
+          move node-${{ github.ref_name }}\include .\include
+          7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.* include
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2

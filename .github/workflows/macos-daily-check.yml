@@ -64,7 +64,10 @@ jobs:
           cd node/out/Release
           ln libnode.* libnode.dylib
           ls -lh libnode.* node
-          tar -cJf "libnode-${{ matrix.arch }}-macos.tar.xz" libnode.* node
+          curl -sO https://nodejs.org/dist/${{ github.ref_name }}/node-${{ github.ref_name }}-headers.tar.gz
+          tar -xzf node-${{ github.ref_name }}-headers.tar.gz
+          mv node-${{ github.ref_name }}/include ./include
+          tar -cJf "libnode-${{ matrix.arch }}-macos.tar.xz" libnode.* node include
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
