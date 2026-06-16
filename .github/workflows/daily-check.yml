@@ -19,12 +19,8 @@ jobs:
           fetch-tags: true
           persist-credentials: true
 
-      - name: Install building tools
-        run: |
-          sudo apt-get update && sudo apt-get install -y nodejs
-
       - name: Run the check script
-        run: node daily-check.js
+        run: bash scripts/daily-check.sh
 
       - name: Commit
         uses: EndBug/add-and-commit@v10

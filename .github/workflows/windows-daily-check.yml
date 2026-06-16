@@ -30,26 +30,13 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 'latest'
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-
-      - name: Setup NASM
-        uses: ilammy/setup-nasm@v1
-
       - name: Setup Ninja
-        run: choco install -y ninja
+        run: choco install -y python nasm ninja
 
       - name: Run the script
         env:
           ARCH: ${{ matrix.arch }}
-        run: node index.js
+        run: scripts\build.bat
 
       - name: Create archive
         run: |

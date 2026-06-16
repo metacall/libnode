@@ -38,7 +38,7 @@ jobs:
       - name: Install building tools
         run: |
           sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y git nodejs python3 python3-pip gcc g++ make nasm ccache
+          sudo apt-get install -y git python3 python3-pip gcc g++ make nasm ccache
 
       - name: Run the script
         env:
@@ -52,7 +52,7 @@ jobs:
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p "$CCACHE_DIR"
 
-          node index.js
+          bash scripts/build.sh
 
       - name: Create archive
         run: |

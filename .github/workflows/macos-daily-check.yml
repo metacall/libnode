@@ -38,7 +38,7 @@ jobs:
       - name: Install building tools
         run: |
           sudo chown -R $(whoami) $(brew --prefix)/*
-          brew install git node ninja nasm ccache llvm
+          brew install git ninja nasm ccache llvm
 
       - name: Run the script
         env:
@@ -56,7 +56,7 @@ jobs:
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p "$CCACHE_DIR"
 
-          node index.js
+          bash scripts/build.sh
 
       - name: Create archive
         run: |
