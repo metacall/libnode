@@ -50,24 +50,15 @@ if (!syncFs.existsSync("node")) {
 
 process.chdir("node");
 
-let extraArgs = [];
 if (process.platform == "win32") {
   await spawnAsync(".\\vcbuild.bat", [ARCH, "dll", "openssl-no-asm"]);
 } else {
-  if (ARCH === "arm64") {
-    extraArgs.push("--with-arm-float-abi");
-    extraArgs.push("hard");
-    extraArgs.push("--with-arm-fpu");
-    extraArgs.push("neon");
-  }
-
   await spawnAsync("./configure", [
     "--shared",
     "--dest-cpu",
     ARCH,
     "--dest-os",
     OS,
-    ...extraArgs,
   ]);
   await spawnAsync("make", [`-j${threadCount}`]);
 }

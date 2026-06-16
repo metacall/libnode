@@ -9,12 +9,16 @@ on:
 jobs:
   update:
     name: Windows
-    runs-on: windows-latest
     strategy:
       matrix:
-        # https://github.com/nodejs/node/issues/52664
-        # arch: [amd64, amd64_arm64]
-        arch: [amd64]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            os: windows-2025-vs2026
+          - arch: arm64
+            os: windows-11-vs2026-arm
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
 
@@ -39,6 +43,7 @@ jobs:
       - name: Create archive
         run: |
           cd node\out\Release
+          dir libnode.*, node.*
           7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
 
       - name: Upload binaries to release

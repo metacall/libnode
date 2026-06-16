@@ -8,15 +8,16 @@ on:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         arch: [amd64, arm64]
         include:
+          - arch: amd64
+            os: ubuntu-26.04
           - arch: arm64
-            is_arm: true
-    container:
-      image: ubuntu:devel
+            os: ubuntu-26.04-arm
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
 
@@ -32,20 +33,14 @@ jobs:
 
       - name: Install building tools
         run: |
-          apt-get update && apt-get upgrade -y
-          apt-get install -y git nodejs python3 python3-pip gcc g++ make nasm ccache linux-libc-dev linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get install -y git nodejs python3 python3-pip gcc g++ make nasm ccache
 
       - name: Run the script
         env:
           ARCH: ${{ matrix.arch }}
-          CC: "${{ matrix.is_arm && 'aarch64-linux-gnu-gcc' || 'gcc' }}"
-          CXX: "${{ matrix.is_arm && 'aarch64-linux-gnu-g++' || 'g++' }}"
-          # We don't want these variables to be set for AMD64.
-          CC_host: "${{ matrix.is_arm && 'gcc' || null }}"
-          CXX_host: "${{ matrix.is_arm && 'g++' || null }}"
-          AS: "${{ matrix.is_arm && 'aarch64-linux-gnu-as' || null }}"
-          LD: "${{ matrix.is_arm && 'aarch64-linux-gnu-ld' || null }}"
-          RANLIB: "${{ matrix.is_arm && 'aarch64-linux-gnu-ranlib' || null }}"
+          CC: "gcc"
+          CXX: "g++"
         run: |
           export CCACHE_COMPRESS="true"
           export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
@@ -59,6 +54,7 @@ jobs:
         run: |
           cd node/out/Release
           ln libnode.so.* libnode.so
+          ls -lh libnode.* node
           tar -cJf "libnode-${{ matrix.arch }}-linux.tar.xz" libnode.* node
 
       - name: Upload binaries to release

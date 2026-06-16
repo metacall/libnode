@@ -11,10 +11,7 @@ The prebuilt binaries are used in [MetaCall Core](https://github.com/metacall/co
 - MacOS x64
 - MacOS ARM64 (M series)
 - Windows x64
-
-## TODO:
-
-- Windows ARM64 (The Windows ARM64 support is dependent on solving [https://github.com/nodejs/node/issues/52664](https://github.com/nodejs/node/issues/52664))
+- Windows ARM64
 
 ## Usage:
 
