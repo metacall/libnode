@@ -34,16 +34,7 @@ jobs:
       - name: Install building tools
         run: |
           sudo chown -R $(whoami) $(brew --prefix)/*
-
-          # homebrew fails to update python 3.9.1 to 3.9.1.1 due to unlinking failure
-          sudo rm -f /usr/local/bin/2to3 || true
-          # homebrew fails to update python from 3.9 to 3.10 due to another unlinking failure
-          sudo rm -f /usr/local/bin/idle3 || true
-          sudo rm -f /usr/local/bin/pydoc3 || true
-          sudo rm -f /usr/local/bin/python3 || true
-          sudo rm -f /usr/local/bin/python3-config || true
-
-          brew install git node ninja nasm ccache
+          brew install git node ninja nasm ccache llvm
 
       - name: Run the script
         env:
@@ -51,6 +42,9 @@ jobs:
           CXX: "g++"
           ARCH: ${{ matrix.arch }}
         run: |
+          export CC="$(brew --prefix llvm)/bin/clang"
+          export CXX="$(brew --prefix llvm)/bin/clang++"
+          
           export CCACHE_COMPRESS="true"
           export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
           export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"

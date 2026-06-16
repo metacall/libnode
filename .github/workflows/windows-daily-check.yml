@@ -33,7 +33,7 @@ jobs:
           scoop_update: true
 
       - name: Install building tools
-        run: scoop install git nodejs python ninja nasm 7zip
+        run: scoop install git nodejs python ninja nasm
 
       - name: Run the script
         env:
