@@ -21,6 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Read version from version.txt
+        shell: bash
+        run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV
+
       - name: Setup ccache
         uses: actions/cache@v5
         with:
@@ -55,15 +59,15 @@ jobs:
           cd node/out/Release
           ln libnode.so.* libnode.so
           ls -lh libnode.* node
-          curl -sO https://nodejs.org/dist/${{ github.ref_name }}/node-${{ github.ref_name }}-headers.tar.gz
-          tar -xzf node-${{ github.ref_name }}-headers.tar.gz
-          mv node-${{ github.ref_name }}/include ./include
+          curl -sO https://nodejs.org/dist/${{ env.NODE_VERSION }}/node-${{ env.NODE_VERSION }}-headers.tar.gz
+          tar -xzf node-${{ env.NODE_VERSION }}-headers.tar.gz
+          mv node-${{ env.NODE_VERSION }}/include ./include
           tar -cJf "libnode-${{ matrix.arch }}-linux.tar.xz" libnode.* node include
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           overwrite: true
-          tag: ${{ github.ref }}
+          tag: ${{ env.NODE_VERSION }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: node/out/Release/libnode-${{ matrix.arch }}-linux.tar.xz
