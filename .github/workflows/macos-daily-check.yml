@@ -44,6 +44,7 @@ jobs:
         run: |
           export CC="$(brew --prefix llvm)/bin/clang"
           export CXX="$(brew --prefix llvm)/bin/clang++"
+          export CXXFLAGS="-include stdlib.h"
           
           export CCACHE_COMPRESS="true"
           export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
