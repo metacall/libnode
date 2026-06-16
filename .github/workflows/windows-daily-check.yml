@@ -26,14 +26,21 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
 
-      - uses: MinoruSekine/setup-scoop@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          update_path: true
-          run_as_admin: true
-          scoop_update: true
+          node-version: 'latest'
 
-      - name: Install building tools
-        run: scoop install git nodejs python ninja nasm
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Setup NASM
+        uses: ilammy/setup-nasm@v1
+
+      - name: Setup Ninja
+        run: choco install -y ninja
 
       - name: Run the script
         env:
