@@ -31,7 +31,9 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           overwrite: true
-          tag: ${{ env.NODE_VERSION }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
           file_glob: true
           file: libnode-headers.*
+          tag: ${{ env.NODE_VERSION }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Changelog: https://github.com/nodejs/node/releases/tag/${{ env.NODE_VERSION }}

@@ -72,6 +72,8 @@ jobs:
           tag: ${{ env.NODE_VERSION }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz
+          body: |
+            Changelog: https://github.com/nodejs/node/releases/tag/${{ env.NODE_VERSION }}
 
       - name: Save ccache (Always)
         id: cache-ccache-save

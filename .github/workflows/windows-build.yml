@@ -51,3 +51,5 @@ jobs:
           tag: ${{ env.NODE_VERSION }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
+          body: |
+            Changelog: https://github.com/nodejs/node/releases/tag/${{ env.NODE_VERSION }}
