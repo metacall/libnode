@@ -1,4 +1,4 @@
-name: Linux
+name: Macos
 
 on:
   push:
@@ -12,11 +12,11 @@ jobs:
       matrix:
         arch: [amd64, arm64]
         include:
-          - arch: amd64
-            os: ubuntu-26.04
           - arch: arm64
-            os: ubuntu-26.04-arm
-
+            os: macos-26
+          - arch: amd64
+            os: macos-26-intel
+            
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -37,15 +37,19 @@ jobs:
 
       - name: Install building tools
         run: |
-          sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y git python3 python3-pip gcc g++ make nasm ccache
+          sudo chown -R $(whoami) $(brew --prefix)/*
+          brew install git ninja nasm ccache llvm
 
       - name: Run the script
         env:
-          ARCH: ${{ matrix.arch }}
           CC: "gcc"
           CXX: "g++"
+          ARCH: ${{ matrix.arch }}
         run: |
+          export CC="$(brew --prefix llvm)/bin/clang"
+          export CXX="$(brew --prefix llvm)/bin/clang++"
+          export CXXFLAGS="-include stdlib.h"
+          
           export CCACHE_COMPRESS="true"
           export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
           export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
@@ -57,12 +61,9 @@ jobs:
       - name: Create archive
         run: |
           cd node/out/Release
-          ln libnode.so.* libnode.so
+          ln libnode.* libnode.dylib
           ls -lh libnode.* node
-          curl -sO https://nodejs.org/dist/${{ env.NODE_VERSION }}/node-${{ env.NODE_VERSION }}-headers.tar.gz
-          tar -xzf node-${{ env.NODE_VERSION }}-headers.tar.gz
-          mv node-${{ env.NODE_VERSION }}/include ./include
-          tar -cJf "libnode-${{ matrix.arch }}-linux.tar.xz" libnode.* node include
+          tar -cJf "libnode-${{ matrix.arch }}-macos.tar.xz" libnode.* node
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -70,4 +71,4 @@ jobs:
           overwrite: true
           tag: ${{ env.NODE_VERSION }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: node/out/Release/libnode-${{ matrix.arch }}-linux.tar.xz
+          file: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz

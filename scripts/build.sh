@@ -23,7 +23,6 @@ if [ "$(uname)" = "Darwin" ]; then
 else
     CORES=$(nproc)
 fi
-THREADS=$((CORES * 2))
 
 if [ ! -d "node" ]; then
     git clone https://github.com/nodejs/node --branch "$NODE_VERSION" --depth=1
@@ -31,4 +30,4 @@ fi
 
 cd node
 ./configure --shared --dest-cpu "$NODE_ARCH" --dest-os "$OS"
-make -j$THREADS
+make -j$CORES

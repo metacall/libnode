@@ -1,0 +1,37 @@
+name: Headers
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  package-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read version from version.txt
+        shell: bash
+        run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV
+
+      - name: Download and package headers
+        run: |
+          sudo apt-get install -y zip
+          curl -sO https://nodejs.org/dist/${{ env.NODE_VERSION }}/node-${{ env.NODE_VERSION }}-headers.tar.gz
+          
+          tar -xzf node-${{ env.NODE_VERSION }}-headers.tar.gz
+          mv node-${{ env.NODE_VERSION }}/include ./include
+          
+          zip -r libnode-headers.zip include/
+          tar -czf libnode-headers.tar.gz include/
+
+      - name: Upload headers to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          overwrite: true
+          tag: ${{ env.NODE_VERSION }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: libnode-headers.*
