@@ -10,6 +10,7 @@ jobs:
   update:
     name: Windows
     strategy:
+      fail-fast: false
       matrix:
         arch: [amd64, arm64]
         include:
