@@ -1,0 +1,8 @@
+name: 'Setup Node Version'
+description: 'Reads version from version.txt and sets NODE_VERSION in GITHUB_ENV'
+runs:
+  using: "composite"
+  steps:
+    - name: Read version from version.txt
+      shell: bash
+      run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV

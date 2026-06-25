@@ -1,0 +1,48 @@
+name: 'Upload Release Assets'
+description: 'Handles success and failure uploads for release assets'
+inputs:
+  node_version:
+    required: true
+  arch:
+    required: true
+  os_name:
+    required: true
+  archive_path:
+    required: false
+  github_token:
+    required: true
+  job_status:
+    required: true
+    description: 'Status of the calling job (success/failure)'
+runs:
+  using: "composite"
+  steps:
+    - name: Upload failure log to release
+      if: ${{ inputs.job_status == 'failure' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        overwrite: true
+        tag: ${{ inputs.node_version }}
+        repo_token: ${{ inputs.github_token }}
+        file: build-failure-${{ inputs.arch }}-${{ inputs.os_name }}.log
+        asset_name: build-failure-${{ inputs.arch }}-${{ inputs.os_name }}.log
+        body: |
+          Changelog: https://github.com/nodejs/node/releases/tag/${{ inputs.node_version }}
+
+    - name: Remove previous failure log on success
+      if: ${{ inputs.job_status == 'success' }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      shell: bash
+      run: gh release delete-asset ${{ inputs.node_version }} build-failure-${{ inputs.arch }}-${{ inputs.os_name }}.log -y -R ${{ github.repository }} || true
+
+    - name: Upload binaries to release
+      if: ${{ inputs.job_status == 'success' }}
+      uses: svenstaro/upload-release-action@v2
+      with:
+        overwrite: true
+        tag: ${{ inputs.node_version }}
+        repo_token: ${{ inputs.github_token }}
+        file: ${{ inputs.archive_path }}
+        body: |
+          Changelog: https://github.com/nodejs/node/releases/tag/${{ inputs.node_version }}

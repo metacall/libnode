@@ -12,9 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Read version from version.txt
-        shell: bash
-        run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV
+      - name: Setup Node Version
+        uses: ./.github/actions/setup-version
 
       - name: Download and package headers
         run: |

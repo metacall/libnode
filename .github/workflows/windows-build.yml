@@ -23,9 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Read version from version.txt
-        shell: bash
-        run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV
+      - name: Setup Node Version
+        uses: ./.github/actions/setup-version
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -34,23 +33,28 @@ jobs:
       - name: Setup Ninja
         run: choco install -y python nasm ninja
 
-      - name: Run the script
+      - name: Build NodeJS
         env:
           ARCH: ${{ matrix.arch }}
-        run: scripts\build.bat
+        shell: pwsh
+        run: |
+          cmd.exe /c "scripts\build.bat 2>&1" | Tee-Object -FilePath "build-failure-${{ matrix.arch }}-windows.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Create archive
+        if: success()
         run: |
           cd node\out\Release
           dir libnode.*, node.*
           7z a -mx9 "libnode-${{ matrix.arch }}-windows.zip" libnode.* node.*
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+      - name: Handle Release Assets
+        if: always()
+        uses: ./.github/actions/upload-assets
         with:
-          overwrite: true
-          tag: ${{ env.NODE_VERSION }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
-          body: |
-            Changelog: https://github.com/nodejs/node/releases/tag/${{ env.NODE_VERSION }}
+          os_name: windows
+          arch: ${{ matrix.arch }}
+          job_status: ${{ job.status }}
+          node_version: ${{ env.NODE_VERSION }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          archive_path: node\out\Release\libnode-${{ matrix.arch }}-windows.zip

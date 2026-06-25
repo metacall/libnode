@@ -39,6 +39,6 @@ jobs:
           allowUpdates: true
           tag: ${{ env.TAG }}
           generateReleaseNotes: false
-          name: libnode ${{ env.TAG }}
+          name: ${{ env.TAG }}
           token: ${{ secrets.ACCESS_TOKEN }}
           body: "Changelog: https://github.com/nodejs/node/releases/tag/${{ env.TAG }}"

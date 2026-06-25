@@ -22,64 +22,42 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Read version from version.txt
-        shell: bash
-        run: echo "NODE_VERSION=$(head -n 1 version.txt | tr -d '\r\n')" >> $GITHUB_ENV
+      - name: Setup Node Version
+        uses: ./.github/actions/setup-version
 
-      - name: Restore ccache
-        id: cache-ccache-restore
-        uses: actions/cache/restore@v5
+      - name: Setup ccache
+        uses: ./.github/actions/setup-ccache
         with:
-          path: .ccache
-          key: ${{ github.workflow }}-${{ matrix.arch }}-${{ hashFiles('**/version.txt') }}
-          restore-keys: |
-            ${{ github.workflow }}-${{ matrix.arch }}-${{ hashFiles('**/version.txt') }}
-            ${{ github.workflow }}-${{ matrix.arch }}-
+          arch: ${{ matrix.arch }}
 
       - name: Install building tools
         run: |
           sudo chown -R $(whoami) $(brew --prefix)/*
           brew install git ninja nasm ccache llvm
 
-      - name: Run the script
+      - name: Build NodeJS
         env:
-          CC: "gcc"
-          CXX: "g++"
           ARCH: ${{ matrix.arch }}
+        shell: bash
         run: |
-          export CC="$(brew --prefix llvm)/bin/clang"
-          export CXX="$(brew --prefix llvm)/bin/clang++"
-          export CXXFLAGS="-include stdlib.h"
-          
-          export CCACHE_COMPRESS="true"
-          export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
-          export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          mkdir -p "$CCACHE_DIR"
-
-          bash scripts/build.sh
+          set -o pipefail
+          scripts/build.sh 2>&1 | tee build-failure-${{ matrix.arch }}-macos.log
 
       - name: Create archive
+        if: success()
         run: |
           cd node/out/Release
           ln libnode.* libnode.dylib
           ls -lh libnode.* node
           tar -cJf "libnode-${{ matrix.arch }}-macos.tar.xz" libnode.* node
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+      - name: Handle Release Assets
+        if: always()
+        uses: ./.github/actions/upload-assets
         with:
-          overwrite: true
-          tag: ${{ env.NODE_VERSION }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz
-          body: |
-            Changelog: https://github.com/nodejs/node/releases/tag/${{ env.NODE_VERSION }}
-
-      - name: Save ccache (Always)
-        id: cache-ccache-save
-        if: always() && steps.cache-ccache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
-        with:
-          path: .ccache
-          key: ${{ steps.cache-ccache-restore.outputs.cache-primary-key }}
+          os_name: macos
+          arch: ${{ matrix.arch }}
+          job_status: ${{ job.status }}
+          node_version: ${{ env.NODE_VERSION }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          archive_path: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz
