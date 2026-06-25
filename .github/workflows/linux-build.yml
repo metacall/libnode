@@ -9,6 +9,7 @@ on:
 jobs:
   update:
     strategy:
+      fail-fast: false
       matrix:
         arch: [amd64, arm64]
         include:
@@ -19,6 +20,17 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - uses: actions/checkout@v6
 
       - name: Read version from version.txt
@@ -52,8 +64,11 @@ jobs:
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
           mkdir -p "$CCACHE_DIR"
 
+          export DEBUG=1
+          export ASAN=1
           bash scripts/build.sh
 
+      # TODO: Implement debug and release
       - name: Create archive
         run: |
           cd node/out/Release
