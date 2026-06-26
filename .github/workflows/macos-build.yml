@@ -20,19 +20,21 @@ jobs:
             
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node Version
         uses: ./.github/actions/setup-version
 
-      - name: Setup ccache
-        uses: ./.github/actions/setup-ccache
+      - name: Restore ccache
+        id: ccache
+        uses: ./.github/actions/restore-ccache
         with:
           arch: ${{ matrix.arch }}
 
       - name: Install building tools
         run: |
           sudo chown -R $(whoami) $(brew --prefix)/*
+          brew untap aws/tap || true
           brew install git ninja nasm ccache llvm
 
       - name: Build NodeJS
@@ -61,3 +63,10 @@ jobs:
           node_version: ${{ env.NODE_VERSION }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           archive_path: node/out/Release/libnode-${{ matrix.arch }}-macos.tar.xz
+
+      - name: Save ccache
+        if: always()
+        uses: ./.github/actions/save-ccache
+        with:
+          cache-hit: ${{ steps.ccache.outputs.cache-hit }}
+          primary-key: ${{ steps.ccache.outputs.cache-primary-key }}

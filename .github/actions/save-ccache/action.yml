@@ -1,0 +1,19 @@
+name: 'Save ccache'
+description: 'Saves ccache for build jobs'
+inputs:
+  primary-key:
+    required: true
+    description: 'The primary key output from the restore step'
+  cache-hit:
+    required: true
+    description: 'The cache-hit output from the restore step'
+runs:
+  using: "composite"
+  steps:
+    - name: Save cache
+      # Only save if we didn't have an exact cache hit
+      if: inputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: .ccache
+        key: ${{ inputs.primary-key }}

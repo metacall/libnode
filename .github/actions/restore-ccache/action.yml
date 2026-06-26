@@ -1,0 +1,24 @@
+name: 'Restore ccache'
+description: 'Restores ccache for build jobs'
+inputs:
+  arch:
+    required: true
+    description: 'The architecture string for the cache key (e.g., amd64, arm64)'
+outputs:
+  cache-primary-key:
+    description: 'The primary key used to restore the cache'
+    value: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+  cache-hit:
+    description: 'Indicates if an exact match was found'
+    value: ${{ steps.ccache-restore.outputs.cache-hit }}
+runs:
+  using: "composite"
+  steps:
+    - name: Restore cache
+      id: ccache-restore
+      uses: actions/cache/restore@v6
+      with:
+        path: .ccache
+        key: ${{ github.workflow }}-${{ inputs.arch }}-${{ hashFiles('**/version.txt') }}
+        restore-keys: |
+          ${{ github.workflow }}-${{ inputs.arch }}-
