@@ -22,16 +22,16 @@ if [ -z "$OS" ]; then
         # because GNU's libstdc++ often pulls it in implicitly by luck through other standard headers.
         export CXXFLAGS="-include cstdlib"
         # Binary names without absolute paths so ccache can intercept them
-        export CC="clang"
-        export CXX="clang++"
+        export CC="ccache clang"
+        export CXX="ccache clang++"
         # Prepend Homebrew's LLVM to the PATH so it overrides Apple's default Clang
         export PATH="$(brew --prefix llvm)/bin:$PATH"
     else
         OS="linux"
         CORES=$(nproc)
 
-        export CC="gcc"
-        export CXX="g++"
+        export CC="ccache gcc"
+        export CXX="ccache g++"
     fi
 fi
 
