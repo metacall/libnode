@@ -27,6 +27,7 @@ REM https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compi
 REM https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4133
 set "CFLAGS=/wd4047 /wd4133 -Wno-incompatible-pointer-types"
 set "CXXFLAGS=/wd4047 /wd4133 -Wno-incompatible-pointer-types"
+set "CL=/wd4047 /wd4133 /clang:-Wno-incompatible-pointer-types"
 
 if not exist "node\" (
     git clone https://github.com/nodejs/node --branch %NODE_VERSION% --depth=1
