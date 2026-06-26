@@ -18,7 +18,7 @@ runs:
       id: ccache-restore
       uses: actions/cache/restore@v6
       with:
-        path: .ccache
+        path: ${{ runner.os == 'Windows' && '.sccache' || '.ccache' }}
         key: ${{ github.workflow }}-${{ inputs.arch }}-${{ hashFiles('**/version.txt') }}
         restore-keys: |
           ${{ github.workflow }}-${{ inputs.arch }}-

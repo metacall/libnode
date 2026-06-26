@@ -26,8 +26,26 @@ jobs:
       - name: Setup Node Version
         uses: ./.github/actions/setup-version
 
-      - name: Setup Ninja
-        run: choco install -y python nasm ninja
+      - name: Restore ccache
+        id: ccache
+        uses: ./.github/actions/restore-ccache
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Setup Scoop
+        shell: pwsh
+        run: |
+          choco install -y 7zip
+          Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+          irm get.scoop.sh | iex
+          echo "$env:USERPROFILE\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          scoop config use_external_7zip true
+
+      - name: Install building tools
+        shell: pwsh
+        run: |
+          scoop install sccache
+          choco install -y python nasm ninja
 
       - name: Build NodeJS
         env:
@@ -54,3 +72,10 @@ jobs:
           node_version: ${{ env.NODE_VERSION }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           archive_path: node\out\Release\libnode-${{ matrix.arch }}-windows.zip
+
+      - name: Save ccache
+        if: always()
+        uses: ./.github/actions/save-ccache
+        with:
+          cache-hit: ${{ steps.ccache.outputs.cache-hit }}
+          primary-key: ${{ steps.ccache.outputs.cache-primary-key }}

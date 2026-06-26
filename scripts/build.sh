@@ -48,3 +48,5 @@ fi
 cd node
 ./configure --shared --dest-cpu "$NODE_ARCH" --dest-os "$OS"
 make -j$CORES
+
+ccache --show-stats
