@@ -26,10 +26,6 @@ jobs:
       - name: Setup Node Version
         uses: ./.github/actions/setup-version
 
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.arch }}
-
       - name: Setup Ninja
         run: choco install -y python nasm ninja
 
