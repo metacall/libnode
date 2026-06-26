@@ -15,10 +15,17 @@ if [ -z "$OS" ]; then
     if [ "$(uname)" = "Darwin" ]; then
         OS="mac"
         CORES=$(sysctl -n hw.ncpu)
-
-        export CXXFLAGS="-include stdlib.h"
-        export CC="$(brew --prefix llvm)/bin/clang"
-        export CXX="$(brew --prefix llvm)/bin/clang++"
+ 
+        # Force-include stdlib.h to resolve undeclared 'malloc' and 'free' errors in the LIEF/spdlog dependency.
+        # This is specifically required for macOS because its C++ standard library (libc++) is strictly structured 
+        # and does not transitively include <stdlib.h> via other headers. In contrast, Linux builds succeed 
+        # because GNU's libstdc++ often pulls it in implicitly by luck through other standard headers.
+        export CXXFLAGS="-include cstdlib"
+        # Binary names without absolute paths so ccache can intercept them
+        export CC="clang"
+        export CXX="clang++"
+        # Prepend Homebrew's LLVM to the PATH so it overrides Apple's default Clang
+        export PATH="$(brew --prefix llvm)/bin:$PATH"
     else
         OS="linux"
         CORES=$(nproc)
