@@ -34,7 +34,9 @@ if not exist "node\" (
 )
 
 cd node
-call .\vcbuild.bat %NODE_ARCH% dll
+REM Pass 'nolld' to force MSVC's link.exe instead of lld-link.
+REM This allows node_mksnapshot to successfully link statically despite dllimport tags.
+call .\vcbuild.bat %NODE_ARCH% dll nolld
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 sccache --show-stats
