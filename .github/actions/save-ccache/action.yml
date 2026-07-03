@@ -16,4 +16,4 @@ runs:
       uses: actions/cache/save@v6
       with:
         key: ${{ inputs.primary-key }}
-        path: ${{ runner.os == 'Windows' && '.sccache' || '.ccache' }}
+        path: ${{ runner.os == 'Linux' && '.ccache' || '.sccache' }}

@@ -21,9 +21,14 @@ if [ -z "$OS" ]; then
         # and does not transitively include <stdlib.h> via other headers. In contrast, Linux builds succeed 
         # because GNU's libstdc++ often pulls it in implicitly by luck through other standard headers.
         export CXXFLAGS="-include cstdlib"
-        # Binary names without absolute paths so ccache can intercept them
-        export CC="ccache clang"
-        export CXX="ccache clang++"
+
+        # Binary names without absolute paths so sccache can intercept them
+        export CC="sccache clang"
+        export CXX="sccache clang++"
+
+        export SCCACHE_DIR="$GITHUB_WORKSPACE/.sccache"
+        mkdir -p "$SCCACHE_DIR"
+
         # Prepend Homebrew's LLVM to the PATH so it overrides Apple's default Clang
         export PATH="$(brew --prefix llvm)/bin:$PATH"
     else
@@ -32,14 +37,14 @@ if [ -z "$OS" ]; then
 
         export CC="ccache gcc"
         export CXX="ccache g++"
+
+        export CCACHE_COMPRESS="true"
+        export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
+        export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
+        mkdir -p "$CCACHE_DIR"
+        export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
     fi
 fi
-
-export CCACHE_COMPRESS="true"
-export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
-export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
-export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:/opt/homebrew/opt/ccache/libexec:$PATH"
-mkdir -p "$CCACHE_DIR"
 
 if [ ! -d "node" ]; then
     git clone https://github.com/nodejs/node --branch "$NODE_VERSION" --depth=1
@@ -49,4 +54,8 @@ cd node
 ./configure --shared --dest-cpu "$NODE_ARCH" --dest-os "$OS"
 make -j$CORES
 
-ccache --show-stats
+if [ "$OS" = "mac" ]; then
+    sccache --show-stats
+else
+    ccache --show-stats
+fi
