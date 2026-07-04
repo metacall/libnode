@@ -26,25 +26,19 @@ if [ -z "$OS" ]; then
         export CC="sccache clang"
         export CXX="sccache clang++"
 
-        export SCCACHE_DIR="$GITHUB_WORKSPACE/.sccache"
-        mkdir -p "$SCCACHE_DIR"
-
         # Prepend Homebrew's LLVM to the PATH so it overrides Apple's default Clang
         export PATH="$(brew --prefix llvm)/bin:$PATH"
     else
         OS="linux"
         CORES=$(nproc)
 
-        export CC="ccache gcc"
-        export CXX="ccache g++"
-
-        export CCACHE_COMPRESS="true"
-        export CCACHE_BASEDIR="$GITHUB_WORKSPACE"
-        export CCACHE_DIR="$CCACHE_BASEDIR/.ccache"
-        mkdir -p "$CCACHE_DIR"
-        export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+        export CC="sccache gcc"
+        export CXX="sccache g++"
     fi
 fi
+
+export SCCACHE_DIR="$GITHUB_WORKSPACE/.sccache"
+mkdir -p "$SCCACHE_DIR"
 
 if [ ! -d "node" ]; then
     git clone https://github.com/nodejs/node --branch "$NODE_VERSION" --depth=1
@@ -54,8 +48,4 @@ cd node
 ./configure --shared --dest-cpu "$NODE_ARCH" --dest-os "$OS"
 make -j$CORES
 
-if [ "$OS" = "mac" ]; then
-    sccache --show-stats
-else
-    ccache --show-stats
-fi
+sccache --show-stats

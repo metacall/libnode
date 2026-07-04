@@ -15,5 +15,5 @@ runs:
       if: inputs.cache-hit != 'true'
       uses: actions/cache/save@v6
       with:
+        path: .sccache
         key: ${{ inputs.primary-key }}
-        path: ${{ runner.os == 'Linux' && '.ccache' || '.sccache' }}
