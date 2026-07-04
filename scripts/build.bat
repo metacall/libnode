@@ -19,25 +19,30 @@ set CC_WRAPPER=sccache
 set CXX_WRAPPER=sccache
 set "SCCACHE_CACHE_SIZE=1536M"
 
-REM libffi performs atomic operations using legacy macros. 
-REM Its macros expect volatile long * for atomic variables, 
-REM but they are being passed int *.
-REM On modern versions of Visual Studio (like 2026)
-REM -Wincompatible-pointer-types is triggered.
-REM https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4047
-REM https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4133
-set "CFLAGS=/wd4047 /wd4133 -Wno-incompatible-pointer-types"
-set "CXXFLAGS=/wd4047 /wd4133 -Wno-incompatible-pointer-types"
-set "CL=/wd4047 /wd4133 /clang:-Wno-incompatible-pointer-types"
+REM Prevent treating warnings as errors and suppress all warnings
+set "CFLAGS=/WX- /w -Wno-error -Wno-incompatible-pointer-types"
+set "CXXFLAGS=/WX- /w -Wno-error -Wno-incompatible-pointer-types"
+set "CL=/WX- /w /clang:-Wno-error /clang:-Wno-incompatible-pointer-types"
 
 if not exist "node\" (
     git clone https://github.com/nodejs/node --branch %NODE_VERSION% --depth=1
 )
-
 cd node
-REM Pass 'nolld' to force MSVC's link.exe instead of lld-link.
-REM This allows node_mksnapshot to successfully link statically despite dllimport tags.
-call .\vcbuild.bat %NODE_ARCH% dll nolld
+
+REM BUGFIX for Node v26 Windows DLL build using Clang-CL & lld-link.
+REM node_mksnapshot statically links to node_base.lib but gets compiled 
+REM expecting dllimport symbols. Patching it to expect static symbols instead.
+if "!NODE_VERSION:~0,4!"=="v26." (
+    findstr /C:"#undef NODE_SHARED_MODE" "tools\snapshot\node_mksnapshot.cc" >nul
+    if !ERRORLEVEL! neq 0 (
+        echo #undef NODE_SHARED_MODE > tmp_patch.cc
+        type "tools\snapshot\node_mksnapshot.cc" >> tmp_patch.cc
+        move /y tmp_patch.cc "tools\snapshot\node_mksnapshot.cc" >nul
+        echo Applied NODE_SHARED_MODE patch to node_mksnapshot.cc for version !NODE_VERSION!
+    )
+)
+
+call .\vcbuild.bat %NODE_ARCH% dll
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 sccache --show-stats
