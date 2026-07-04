@@ -37,6 +37,7 @@ if [ -z "$OS" ]; then
     fi
 fi
 
+export SCCACHE_CACHE_SIZE="1536M"
 export SCCACHE_DIR="$GITHUB_WORKSPACE/.sccache"
 mkdir -p "$SCCACHE_DIR"
 

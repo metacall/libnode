@@ -17,6 +17,7 @@ set "SCCACHE_DIR=%GITHUB_WORKSPACE%\.sccache"
 if not exist "%SCCACHE_DIR%" mkdir "%SCCACHE_DIR%"
 set CC_WRAPPER=sccache
 set CXX_WRAPPER=sccache
+set "SCCACHE_CACHE_SIZE=1536M"
 
 REM libffi performs atomic operations using legacy macros. 
 REM Its macros expect volatile long * for atomic variables, 
